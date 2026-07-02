@@ -75,7 +75,7 @@ docker run --rm -p 8080:8080 cicd-tasklist-frontend
 
 ## Lancer en local avec Docker
 
-Le frontend est servi par Nginx via le Dockerfile multi-stage. La variable `VITE_API_URL` est injectée au moment du build de l'image.
+Le frontend est servi par un petit serveur HTTP Go (`server/main.go`) compilé dans une image finale `scratch`, via le Dockerfile multi-stage. La variable `VITE_API_URL` est injectée au moment du build de l'image.
 
 Exécution standard:
 

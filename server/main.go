@@ -19,11 +19,7 @@ func main() {
 			return
 		}
 
-		if info, err := os.Stat(contentRoot + r.URL.Path); err == nil {
-			if info.IsDir() {
-				fileServer.ServeHTTP(w, r)
-				return
-			}
+		if _, err := os.Stat(contentRoot + r.URL.Path); err == nil {
 			fileServer.ServeHTTP(w, r)
 			return
 		}
@@ -33,8 +29,7 @@ func main() {
 			return
 		}
 
-		r.URL.Path = "/index.html"
-		fileServer.ServeHTTP(w, r)
+		http.ServeFile(w, r, contentRoot+"/index.html")
 	})
 
 	server := &http.Server{
