@@ -27,7 +27,7 @@ Le flux principal est simple:
 - Rapport d'exécution des tests: `reports/junit.xml`.
 - Build frontend: `dist/`.
 - SBOM: `sbom-spdx.json`.
-- Image Docker finale: Nginx servant les fichiers statiques du build.
+- Image Docker finale: serveur statique Go servi depuis une image finale `scratch` sur le port 8080.
 
 ## Configuration Jenkins, Sonar et Docker
 
@@ -38,7 +38,7 @@ Points importants:
 - Les identifiants Jenkins sont utilisés uniquement via `withCredentials`.
 - Le token Sonar est injecté au moment de l'analyse, jamais en clair dans le dépôt.
 - Le Dockerfile est multi-stage pour garder l'image runtime minimale.
-- `nginx.conf` utilise `try_files $uri $uri/ /index.html;` pour le routage côté client.
+- `server/main.go` gère le routage côté client en renvoyant `index.html` pour les routes SPA.
 
 ## Stratégie de tests
 
@@ -70,7 +70,7 @@ npm run build
 
 ```bash
 docker build -t cicd-tasklist-frontend .
-docker run --rm -p 8080:80 cicd-tasklist-frontend
+docker run --rm -p 8080:8080 cicd-tasklist-frontend
 ```
 
 ## Lancer en local avec Docker
