@@ -54,7 +54,6 @@ pipeline {
                 -Dsonar.exclusions=src/__tests__/** \
                 -Dsonar.coverage.exclusions=src/__tests__/** \
                 -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info \
-                -Dsonar.testExecutionReportPaths=reports/junit.xml \
                 -Dsonar.token=$SONAR_TOKEN
             '''
           }
