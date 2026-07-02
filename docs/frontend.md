@@ -73,6 +73,38 @@ docker build -t cicd-tasklist-frontend .
 docker run --rm -p 8080:80 cicd-tasklist-frontend
 ```
 
+## Lancer en local avec Docker
+
+Le frontend est servi par Nginx via le Dockerfile multi-stage. La variable `VITE_API_URL` est injectée au moment du build de l'image.
+
+Exécution standard:
+
+```bash
+docker compose up -d --build
+```
+
+Par défaut, `docker-compose.yml` utilise:
+
+```text
+VITE_API_URL=http://localhost:3001/api
+```
+
+Vous pouvez la surcharger selon votre backend:
+
+Backend déployé:
+
+```bash
+VITE_API_URL=https://api.example.com/api docker compose up -d --build
+```
+
+Backend en Docker sur le même réseau Compose:
+
+```bash
+VITE_API_URL=http://backend:3001/api docker compose up -d --build
+```
+
+Le service frontend est exposé sur `http://localhost:5173`.
+
 ### CI/CD
 
 Le fichier `Jenkinsfile` produit les livrables suivants:
