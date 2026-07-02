@@ -7,9 +7,8 @@ pipeline {
   }
 
   environment {
-    DOCKER_IMAGE = 'cicd-tasklist-frontend'
-    DOCKERHUB_NAMESPACE = 'your-dockerhub-namespace'
-    FULL_IMAGE_NAME = "${DOCKERHUB_NAMESPACE}/${DOCKER_IMAGE}"
+    APP_IMAGE_NAME = 'cicd-tasklist-frontend'
+    LOCAL_IMAGE_NAME = "${APP_IMAGE_NAME}:${env.BUILD_NUMBER}"
   }
 
   stages {
@@ -56,7 +55,7 @@ pipeline {
                 -Dsonar.coverage.exclusions=src/__tests__/** \
                 -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info \
                 -Dsonar.testExecutionReportPaths=reports/junit.xml \
-                -Dsonar.login=$SONAR_TOKEN
+                -Dsonar.token=$SONAR_TOKEN
             '''
           }
         }
@@ -73,7 +72,7 @@ pipeline {
 
     stage('Build image Docker') {
       steps {
-        sh 'docker build -t ${FULL_IMAGE_NAME}:${BUILD_NUMBER} .'
+        sh 'docker build -t $LOCAL_IMAGE_NAME .'
       }
     }
 
@@ -85,7 +84,7 @@ pipeline {
             aquasec/trivy:latest image \
             --severity HIGH,CRITICAL \
             --exit-code 1 \
-            ${FULL_IMAGE_NAME}:${BUILD_NUMBER}
+            $LOCAL_IMAGE_NAME
         '''
       }
     }
@@ -97,7 +96,7 @@ pipeline {
             -v /var/run/docker.sock:/var/run/docker.sock \
             -v "$WORKSPACE:/workspace" \
             anchore/syft:latest \
-            ${FULL_IMAGE_NAME}:${BUILD_NUMBER} \
+            $LOCAL_IMAGE_NAME \
             -o spdx-json=/workspace/sbom-spdx.json
         '''
       }
@@ -108,7 +107,9 @@ pipeline {
         withCredentials([usernamePassword(credentialsId: 'dockerhub-creds', usernameVariable: 'DOCKERHUB_USERNAME', passwordVariable: 'DOCKERHUB_PASSWORD')]) {
           sh '''
             echo "$DOCKERHUB_PASSWORD" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
-            docker push ${FULL_IMAGE_NAME}:${BUILD_NUMBER}
+            REMOTE_IMAGE_NAME="docker.io/$DOCKERHUB_USERNAME/cicd-tasklist-frontend:$BUILD_NUMBER"
+            docker tag "$LOCAL_IMAGE_NAME" "$REMOTE_IMAGE_NAME"
+            docker push "$REMOTE_IMAGE_NAME"
           '''
         }
       }
